@@ -1,0 +1,47 @@
+FROM debian:latest
+
+# Install additional build prerequisites.
+RUN apt-get update && \
+    DEBIAN_FRONTEND=noninteractive apt-get install -q -y \
+        --no-install-recommends \
+        autoconf                \
+        automake                \
+	bison                   \
+	build-essential         \
+	flex                    \
+	libglib2.0-dev          \
+	libncurses-dev          \
+	libtool                 \
+	linux-libc-dev          \
+	wget                    \
+	zlib1g-dev              \
+    && apt-get clean
+
+# Get QEMU source
+RUN mkdir -p /build/qemu && \
+    cd /build/qemu && \
+    wget -q http://wiki.qemu-project.org/download/qemu-2.5.0.tar.bz2 && \
+    tar -xjf qemu-2.5.0.tar.bz2
+
+WORKDIR /build/qemu/qemu-2.5.0
+RUN ./configure \
+	--prefix=/runtime/qemu \
+        --disable-vnc \
+	--audio-drv-list= \
+	--disable-guest-agent \
+	--disable-tools \
+	--target-list=x86_64-softmmu \
+	--static
+
+RUN make -j4 && make install
+
+# QEMU "make install" installs a bunch of binary blobs and other cruft totally
+# unrelated to the target we're building for, weed these out.
+WORKDIR /runtime/qemu/share/qemu
+RUN rm -f pxe-* qemu_logo* u-boot* s390* efi-eepro* vgabios* petalogix* \
+        bamboo* qemu-icon* openbios* slof.bin efi-ne2k* q35-acpi* efi-rtl* \
+	ppc* spapr-* efi-e1000* trace-events QEMU,* efi-pcnet* sgabios.bin \
+	palcode*
+WORKDIR /runtime
+# Also exclude qemu-bridge-helper, we don't need it
+CMD tar --exclude ./qemu/libexec -czf - .

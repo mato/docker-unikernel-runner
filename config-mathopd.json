@@ -1,0 +1,8 @@
+{
+    "rc": [
+        {
+            "bin": "mathopd",
+            "argv": [ "mathopd", "-n", "-t", "-f", "/data/mathopd.conf" ]
+        }
+    ]
+}

@@ -1,0 +1,2 @@
+FROM unikernel-runner
+ADD unikernel-wopr.tar.gz /unikernel/
