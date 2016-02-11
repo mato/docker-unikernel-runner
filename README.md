@@ -69,6 +69,11 @@ following additional options:
 If you do not pass a `/dev/kvm` into the container, the unikernel will be run
 using software emulation only.
 
+`CAP_NET_ADMIN` and access to `/dev/net/tun` are required for unikernel-runner
+to be able to wire L2 network connectivity from Docker to the unikernel guest.
+For additional security, unikernel-runner invokes the included QEMU binary as a
+_non root_ user.
+
 ## Developing unikernel-runner
 
 The build process for unikernel-runner is containerized. However, due to the
