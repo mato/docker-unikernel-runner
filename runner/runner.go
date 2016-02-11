@@ -7,7 +7,6 @@ import (
     "syscall"
     "github.com/Jeffail/gabs"
     "github.com/davecgh/go-spew/spew"
-//    "github.com/syndtr/gocapability/capability"
 )
 
 func main() {
@@ -67,6 +66,15 @@ func main() {
 	if hasKvm {
 		guestArgs = append(guestArgs,
 			"-enable-kvm", "-cpu", "host,migratable=no,+invtsc")
+		// QEMU will be run as UID 1, ensure it can access /dev/kvm
+		if err := syscall.Chown("/dev/kvm", 1, 1); err != nil {
+			log.Fatalf("Could not chown() /dev/kvm: %v", err)
+		}
+	}
+	// QEMU will be run as UID 1, ensure it can access /dev/net/tun.
+	// Not strictly necessary as this should be mode 0666, but you never know.
+	if err := syscall.Chown("/dev/net/tun", 1, 1); err != nil {
+		log.Fatalf("Could not chown() /dev/net/tun: %v", err)
 	}
 	// Tap interface -> virtio-net
 	guestArgs = append(guestArgs, "-net")
@@ -82,6 +90,10 @@ func main() {
 		guestArgs = append(guestArgs, "-drive")
 		volArg := fmt.Sprintf("file=%v,if=virtio,format=raw", v.path)
 		guestArgs = append(guestArgs, volArg)
+		// QEMU will be run as UID 1, ensure it can access the volume
+		if err := syscall.Chown(v.path, 1, 1); err != nil {
+			log.Fatalf("Could not chown() %v: %v", v.path, err)
+		}
 	}
 	if verbose {
 		fmt.Println("---- DEBUG: netConfig")
@@ -91,23 +103,19 @@ func main() {
 		fmt.Println("---- DEBUG: guestArgs")
 		spew.Dump(guestArgs)
 	}
-	// Drop CAP_NET_ADMIN here, we no longer need it.
-	// XXX This doesn't actually appear to do anything, "getpcaps" on the
-	// qemu process still prints "cap_net_admin+ep" in its list?!
-	// caps, err := capability.NewPid(0)
-//	if err != nil {
-//		log.Fatalf("Init capabilities: %v", err)
-//	}
-//	if err := caps.Load(); err != nil {
-//		log.Fatalf("Get capabilities: %v", err)
-//	}
-//	caps.Unset(capability.INHERITABLE | capability.EFFECTIVE | capability.PERMITTED | capability.BOUNDING, capability.CAP_NET_ADMIN)
-//	if err := caps.Apply(capability.CAPS); err != nil {
-//		log.Fatalf("Cannot drop CAP_NET_ADMIN: %v", err)
-//	}
-	// Boom!
-	err = syscall.Exec("/runtime/qemu/bin/qemu-system-x86_64", guestArgs, nil)
+	// So, there's no feasible way of dropping CAP_NET_ADMIN or calling
+	// setuid() in a golang program (see https://github.com/golang/go/issues/1435)
+	// Hence, we chown anything QEMU needs to write to to UID 1 above, and
+	// make the qemu binary setuid.
+	qemuPath := "/runtime/qemu/bin/qemu-system-x86_64"
+	if err := syscall.Chown(qemuPath, 1, 1); err != nil {
+		log.Fatalf("Could not chown() %v: %v", qemuPath, err)
+	}
+	if err := syscall.Chmod(qemuPath, 04755); err != nil {
+		log.Fatalf("Could not chmod() %v: %v", qemuPath, err)
+	}
+	err = syscall.Exec(qemuPath, guestArgs, nil)
 	if err != nil {
-		log.Fatalf("Exec(%v): %v", guestArgs, err)
+		log.Fatalf("Exec(%v, %v): %v", qemuPath, guestArgs, err)
 	}
 }
