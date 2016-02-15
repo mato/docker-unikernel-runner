@@ -1,10 +1,10 @@
 # Docker unikernel runner
 
-Docker-unikernel-runner is a platform for experimenting with using Docker to
-_build_, _distribute_ and _run_ Rumprun unikernels. It provides a base image
-for unikernel images to inherit from, glue code to integrate with (among other
-things) Docker networking, and a minimal runtime to actually launch the
-unikernel (currently implemented using QEMU/KVM).
+Docker-unikernel-runner is a platform for experimenting with using Docker
+components to _build_, _distribute_ and _run_ unikernels[1](#footnote1). It
+provides a base image for unikernel images to inherit from, glue code to
+integrate with (among other things) Docker networking, and a minimal runtime to
+actually launch the unikernel (currently implemented using QEMU/KVM).
 
 ## TL;DR
 
@@ -42,9 +42,7 @@ mato/unikernel-runner` and must adhere to the following structure:
     /unikernel/config.json
     /unikernel/fs/<volume>.img
 
-* `unikernel.bin` is the unikernel binary. Only the rumprun `hw/x86_64`
-  platform is currently supported, and the image must be baked using the
-  `hw_virtio` configuration.
+* `unikernel.bin` is the unikernel binary[1](#footnote1).
 * `config.json` is an _optional_ JSON configuration to be passed to the
   unikernel. The configuration must follow the work in progress "Rumprun
   unikernel configuration" [specification](https://github.com/rumpkernel/rumprun/blob/mato-wip-rumprun-config/doc/config.md) (see **NOTE** below) and, in addition:
@@ -94,4 +92,8 @@ cannot be run as a single container.
 
 Thus, you will need both `docker` and `make` available in your development
 environment. To build everything from source, just run `make`.
+
+<a name="myfootnote1">[1]</a> Unikernel-runner currently supports only Rumprun
+unikernels built for `x86_64-rumprun-netbsd` and baked for the `hw_virtio`
+configuration.
 
