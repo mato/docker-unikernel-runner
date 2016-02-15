@@ -51,8 +51,12 @@ func mergeNetConfig(netconfig *netConfig, guest *gabs.Container) (err error) {
 	gw.Set("inet", "type")
 	gw.Set(netconfig.gateway, "addr")
 	dns, _ := guest.ObjectP("net.dns")
-	dns.Set(netconfig.dnsServers, "nameservers")
-	dns.Set(netconfig.dnsSearch, "search")
+	if netconfig.dnsServers != nil {
+		dns.Set(netconfig.dnsServers, "nameservers")
+	}
+	if netconfig.dnsSearch != nil {
+		dns.Set(netconfig.dnsSearch, "search")
+	}
 	return
 }
 
