@@ -1,7 +1,7 @@
 # Docker unikernel runner
 
 Docker-unikernel-runner is a platform for experimenting with using Docker
-components to _build_, _distribute_ and _run_ unikernels[1](#footnote1). It
+components to _build_, _distribute_ and _run_ unikernels[[1]](#footnote1). It
 provides a base image for unikernel images to inherit from, glue code to
 integrate with (among other things) Docker networking, and a minimal runtime to
 actually launch the unikernel (currently implemented using QEMU/KVM).
@@ -42,7 +42,7 @@ mato/unikernel-runner` and must adhere to the following structure:
     /unikernel/config.json
     /unikernel/fs/<volume>.img
 
-* `unikernel.bin` is the unikernel binary[1](#footnote1).
+* `unikernel.bin` is the unikernel binary[[1]](#footnote1).
 * `config.json` is an _optional_ JSON configuration to be passed to the
   unikernel. The configuration must follow the work in progress "Rumprun
   unikernel configuration" [specification](https://github.com/rumpkernel/rumprun/blob/mato-wip-rumprun-config/doc/config.md) (see **NOTE** below) and, in addition:
