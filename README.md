@@ -93,7 +93,7 @@ cannot be run as a single container.
 Thus, you will need both `docker` and `make` available in your development
 environment. To build everything from source, just run `make`.
 
-<a name="myfootnote1">[1]</a> Unikernel-runner currently supports only Rumprun
+<a name="footnote1">[1]</a> Unikernel-runner currently supports only Rumprun
 unikernels built for `x86_64-rumprun-netbsd` and baked for the `hw_virtio`
 configuration.
 
