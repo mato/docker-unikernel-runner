@@ -4,7 +4,7 @@ Q=
 .PHONY: all
 all: unikernel-runner unikernel-mathopd unikernel-wopr
 
-unikernel-runner.tar.gz: runner/*.go
+unikernel-runner.tar.gz: runner/*.go Dockerfile.runner-build
 	docker build $(Q) -t unikernel-runner-build -f Dockerfile.runner-build .
 	docker run --rm unikernel-runner-build > unikernel-runner.tar.gz
 
@@ -13,7 +13,7 @@ qemu.tar.gz: Dockerfile.qemu-build
 	docker run --rm unikernel-qemu-build > qemu.tar.gz
 
 .PHONY: unikernel-runner
-unikernel-runner: unikernel-runner.tar.gz qemu.tar.gz
+unikernel-runner: unikernel-runner.tar.gz qemu.tar.gz Dockerfile.runner
 	docker build $(Q) -t unikernel-runner -f Dockerfile.runner .
 
 unikernel-mathopd.tar.gz: Dockerfile.mathopd-build

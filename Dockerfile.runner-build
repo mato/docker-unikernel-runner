@@ -1,7 +1,7 @@
 FROM golang:alpine
-RUN apk add --update make git && rm -rf /var/cache/apk
-ADD ./runner /build/unikernel-runner
-WORKDIR /build/unikernel-runner
+RUN apk add --update make && rm -rf /var/cache/apk
+ADD ./runner /go/src/unikernel-runner
+WORKDIR /go/src/unikernel-runner
 RUN make build-runner
 # We could strip unikernel-runner here, but apparently stripping go binaries
 # is not supported? (https://bugs.debian.org/cgi-bin/bugreport.cgi?bug=717172)

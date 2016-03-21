@@ -1,4 +1,3 @@
 .PHONY: build-runner
 build-runner:
-	go get -d -v
-	go build -v -tags netgo
+	GO15VENDOREXPERIMENT=1 go build -v -tags netgo
