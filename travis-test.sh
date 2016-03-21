@@ -5,14 +5,13 @@
 #   - kills the unikernel
 # As the script is intended to run under Travis where KVM is not available,
 # software emulation is used.
-set -e
+set -xe
 CID=$(docker run --detach \
     --device /dev/net/tun:/dev/net/tun \
     --cap-add NET_ADMIN \
     --publish=80 \
     unikernel-mathopd)
 CPORT=$(docker port $CID 80)
-echo Started ${CID}, listening on ${CPORT}
 # Use wget in preference to curl as it will retry on "Connection reset by peer"
 # which is what we get from Docker's port forwarding if networking (or mathopd)
 # is not up yet.
