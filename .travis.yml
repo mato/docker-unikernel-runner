@@ -3,4 +3,4 @@ dist: trusty
 services:
     - docker
 language: generic
-script: make
+script: make && ./travis-test.sh

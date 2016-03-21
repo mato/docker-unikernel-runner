@@ -1,4 +1,4 @@
-# Docker unikernel runner
+# Docker unikernel runner [![Build Status](https://travis-ci.org/mato/docker-unikernel-runner.svg?branch=master)](https://travis-ci.org/mato/docker-unikernel-runner)
 
 Docker-unikernel-runner is a platform for experimenting with using Docker
 components to _build_, _distribute_ and _run_ unikernels[[1]](#footnote1). It
