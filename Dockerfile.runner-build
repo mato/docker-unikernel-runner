@@ -1,8 +1,10 @@
 FROM golang:alpine
 RUN apk add --update make && rm -rf /var/cache/apk
-ADD ./runner /go/src/unikernel-runner
-WORKDIR /go/src/unikernel-runner
+ADD ./runner /go/src/runner
+WORKDIR /go/src/runner
+# "go build" names the resulting binary based on the project directory, so the
+# output of this step will be "runner"
 RUN make build-runner
-# We could strip unikernel-runner here, but apparently stripping go binaries
+# We could strip runner here, but apparently stripping go binaries
 # is not supported? (https://bugs.debian.org/cgi-bin/bugreport.cgi?bug=717172)
-CMD tar -czf - unikernel-runner
+CMD tar -czf - runner
