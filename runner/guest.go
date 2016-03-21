@@ -33,10 +33,13 @@ func saveGuestConfig(config *gabs.Container, path string) (err error) {
 
 // Merge ("generate?") guest network configuration from host configuration.
 func mergeNetConfig(netconfig *netConfig, guest *gabs.Container) (err error) {
-	if guest.ExistsP("hostname") {
+	if guest.Exists("netbsd", "sysctl", "kern.hostname") {
 		log.Print("Guest already defines hostname, not overriden")
 	} else {
-		guest.SetP(netconfig.hostname, "hostname")
+		_, err := guest.Set(netconfig.hostname, "netbsd", "sysctl", "kern.hostname")
+		if err != nil {
+			return err
+		}
 	}
 	if guest.ExistsP("net") {
 		return fmt.Errorf("Guest already defines net configuration")
