@@ -12,6 +12,7 @@ CID=$(docker run --detach \
     --publish=80 \
     unikernel-mathopd)
 CPORT=$(docker port $CID 80)
-echo Started ${CID}, reachable on ${CPORT}
-curl http://${CPORT}/
+echo Started ${CID}, listening on ${CPORT}
+# Give it some time to come up
+curl --retry 5 --retry-max-time 10 http://${CPORT}/
 docker rm -f $CID
