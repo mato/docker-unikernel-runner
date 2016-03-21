@@ -13,6 +13,8 @@ CID=$(docker run --detach \
     unikernel-mathopd)
 CPORT=$(docker port $CID 80)
 echo Started ${CID}, listening on ${CPORT}
-# Give it some time to come up
-curl --retry 5 --retry-max-time 10 http://${CPORT}/
+# Use wget in preference to curl as it will retry on "Connection reset by peer"
+# which is what we get from Docker's port forwarding if networking (or mathopd)
+# is not up yet.
+wget -q -O - http://${CPORT}/
 docker rm -f $CID
