@@ -1,4 +1,4 @@
 FROM scratch
 ADD unikernel-runner.tar.gz /runtime/
 ADD qemu.tar.gz /runtime/
-CMD ["/runtime/runner"]
+ENTRYPOINT ["/runtime/runner"]
