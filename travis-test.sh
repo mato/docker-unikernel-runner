@@ -14,4 +14,4 @@ CID=$(docker run --detach \
 CPORT=$(docker port $CID 80)
 echo Started ${CID}, reachable on ${CPORT}
 curl http://${CPORT}/
-docker kill $CID
+docker rm -f $CID
