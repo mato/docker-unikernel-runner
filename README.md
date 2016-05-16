@@ -35,4 +35,4 @@ the unikernel.
 
 ## Known issues
 
-* (to be filed) MirageOS `direct` networking stack on `unix` always starts with the same MAC address. Until this is fixed it is not possible to run more than one unikernel.
+* ([mirage/mirage-net-unix#23](https://github.com/mirage/mirage-net-unix/issues/23)) MirageOS `direct` networking stack on `unix` always starts with the same MAC address. Until this is fixed it is not possible to run more than one unikernel.
