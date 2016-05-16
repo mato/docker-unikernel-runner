@@ -32,3 +32,7 @@ docker run -ti --rm --device=/dev/net/tun:/dev/net/tun \
 to wire L2 network connectivity from Docker to the unikernel. Runner will drop
 all capabilities with the exception of `CAP_NET_BIND_SERVICE` before launching
 the unikernel.
+
+## Known issues
+
+* (to be filed) MirageOS `direct` networking stack on `unix` always starts with the same MAC address. Until this is fixed it is not possible to run more than one unikernel.
