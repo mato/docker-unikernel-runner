@@ -1,0 +1,13 @@
+# Build container for Mirage 'stackv4' example.
+
+# Build distro must match that used to build 'mir-runner'.
+FROM ocaml/opam:alpine
+
+RUN opam depext -i mirage
+RUN git clone http://github.com/mirage/mirage-skeleton
+WORKDIR /home/opam/mirage-skeleton/stackv4
+RUN opam config exec -- mirage configure --unix
+RUN opam config exec make
+
+# "Run" phase outputs built unikernel as a .tar.gz.
+CMD tar -C /home/opam/mirage-skeleton/stackv4 -czh -f - mir-stackv4

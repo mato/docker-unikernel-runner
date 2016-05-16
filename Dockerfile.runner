@@ -1,4 +1,6 @@
-FROM scratch
-ADD unikernel-runner.tar.gz /runtime/
-ADD qemu.tar.gz /runtime/
+# "Runtime" container for mirage-unix runner.
+
+FROM alpine:latest
+RUN apk add --update --no-cache libnl3 libcap-ng
+ADD runner.tar.gz /runtime/
 ENTRYPOINT ["/runtime/runner"]
