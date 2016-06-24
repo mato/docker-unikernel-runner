@@ -47,7 +47,7 @@ the unikernel.
 
 The Mirage OS/[Solo5](https://github.com/djwillia/solo5) port is still a work
 in progress and is incomplete. The progress of the port can be followed at
-djwillia/solo5#36.
+[djwillia/solo5#36](https://github.com/djwillia/solo5/issues/36).
 
 To run the `mir-stackv4` sample using `ukvm` as a hypervisor:
 
