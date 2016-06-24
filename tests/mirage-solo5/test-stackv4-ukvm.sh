@@ -1,5 +1,9 @@
 #!/bin/sh
 set -ex
+if [ ! \( -c /dev/kvm -a -w /dev/kvm \) ]; then
+    echo "$0: /dev/kvm not available, not running test"
+    exit 0
+fi
 docker run -d --name test-mir-stackv4-ukvm \
     --device=/dev/kvm:/dev/kvm \
     --device=/dev/net/tun:/dev/net/tun \
