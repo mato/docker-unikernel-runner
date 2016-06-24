@@ -63,3 +63,4 @@ required.
 ## Known issues
 
 * ([mirage/mirage-net-unix#23](https://github.com/mirage/mirage-net-unix/issues/23)) Mirage OS `direct` networking stack on `unix` always starts with the same MAC address. Until this is fixed it is not possible to run more than one unikernel.
+* ([#1](https://github.com/mato/docker-unikernel-runner/issues/1)) Network delays due to random MAC address use. 
