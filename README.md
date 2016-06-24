@@ -1,4 +1,4 @@
-# Docker unikernel runner for Mirage OS
+# Docker unikernel runner for Mirage OS [![Build status](https://travis-ci.org/mato/docker-unikernel-runner.svg?branch=master)](https://travis-ci.org/mato/docker-unikernel-runner)
 
 This is an experimental unikernel runner for running
 [Mirage OS](https://mirage.io) unikernels in Docker containers. Currently the
