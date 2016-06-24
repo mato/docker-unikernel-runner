@@ -21,6 +21,16 @@ mir-stackv4.tar.gz: Dockerfile.stackv4-build
 mir-stackv4: mir-stackv4.tar.gz Dockerfile.stackv4 mir-runner
 	docker build -t mir-stackv4 -f Dockerfile.stackv4 .
 
+# Mirage 'stackv4' sample (ukvm): intermediate build container.
+mir-stackv4-ukvm.tar.gz: Dockerfile.stackv4-ukvm-build
+	docker build -t mir-stackv4-ukvm-build -f Dockerfile.stackv4-ukvm-build .
+	docker run --rm mir-stackv4-ukvm-build > mir-stackv4-ukvm.tar.gz
+
+# Mirage 'stackv4' sample (ukvm): mir-stackv4-ukvm.
+.PHONY: mir-stackv4-ukvm
+mir-stackv4-ukvm: mir-stackv4-ukvm.tar.gz Dockerfile.stackv4-ukvm mir-runner
+	docker build -t mir-stackv4-ukvm -f Dockerfile.stackv4-ukvm .
+
 # Mirage 'static_website' sample: intermediate build container.
 mir-static_website.tar.gz: Dockerfile.static_website-build
 	docker build -t mir-static_website-build -f Dockerfile.static_website-build .

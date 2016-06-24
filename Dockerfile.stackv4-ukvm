@@ -1,0 +1,7 @@
+# Runtime container for Mirage 'stackv4' example (ukvm version).
+
+FROM mir-runner
+ADD mir-stackv4-ukvm.tar.gz /unikernel/
+
+# ENTRYPOINT is already set by mir-runner.
+CMD ["/unikernel/ukvm", "/dev/zero", "tap0", "/unikernel/mir-stackv4.ukvm"]
