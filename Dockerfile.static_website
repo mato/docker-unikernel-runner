@@ -1,0 +1,9 @@
+# Runtime container for Mirage 'static_website' example.
+
+FROM mir-runner
+# mirage-http requires libgmp
+RUN apk add --update --no-cache gmp
+ADD mir-static_website.tar.gz /unikernel/
+
+# ENTRYPOINT is already set by mir-runner.
+CMD ["/unikernel/mir-www"]

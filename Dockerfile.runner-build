@@ -1,10 +1,6 @@
-FROM golang:alpine
-RUN apk add --update make && rm -rf /var/cache/apk
-ADD ./runner /go/src/runner
-WORKDIR /go/src/runner
-# "go build" names the resulting binary based on the project directory, so the
-# output of this step will be "runner"
-RUN make build-runner
-# We could strip runner here, but apparently stripping go binaries
-# is not supported? (https://bugs.debian.org/cgi-bin/bugreport.cgi?bug=717172)
+FROM alpine:latest
+RUN apk add --update --no-cache build-base linux-headers libnl3-dev libcap-ng-dev
+ADD ./src /src/runner
+WORKDIR /src/runner
+RUN make
 CMD tar -czf - runner

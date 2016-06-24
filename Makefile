@@ -1,72 +1,42 @@
-# Set to '-q' to quiet docker build
-Q=
-
 .PHONY: all
-all: unikernel-runner unikernel-mathopd unikernel-wopr
+all: mir-runner mir-stackv4 mir-static_website
 
-unikernel-runner.tar.gz: runner/*.go Dockerfile.runner-build
-	docker build $(Q) -t unikernel-runner-build -f Dockerfile.runner-build .
-	docker run --rm unikernel-runner-build > unikernel-runner.tar.gz
+# Runner base image: intermediate build container.
+runner.tar.gz: src/*.c src/Makefile Dockerfile.runner-build
+	docker build -t mir-runner-build -f Dockerfile.runner-build .
+	docker run --rm mir-runner-build > runner.tar.gz
 
-qemu.tar.gz: Dockerfile.qemu-build
-	docker build $(Q) -t unikernel-qemu-build -f Dockerfile.qemu-build .
-	docker run --rm unikernel-qemu-build > qemu.tar.gz
+# Runner base image: mir-runner.
+.PHONY: mir-runner
+mir-runner: runner.tar.gz Dockerfile.runner
+	docker build -t mir-runner -f Dockerfile.runner .
 
-.PHONY: unikernel-runner
-unikernel-runner: unikernel-runner.tar.gz qemu.tar.gz Dockerfile.runner
-	docker build $(Q) -t unikernel-runner -f Dockerfile.runner .
+# Mirage 'stackv4' sample: intermediate build container.
+mir-stackv4.tar.gz: Dockerfile.stackv4-build
+	docker build -t mir-stackv4-build -f Dockerfile.stackv4-build .
+	docker run --rm mir-stackv4-build > mir-stackv4.tar.gz
 
-unikernel-mathopd.tar.gz: Dockerfile.mathopd-build
-	docker build $(Q) -t unikernel-mathopd-build -f Dockerfile.mathopd-build .
-	docker run --rm unikernel-mathopd-build > unikernel-mathopd.tar.gz
+# Mirage 'stackv4' sample: mir-stackv4.
+.PHONY: mir-stackv4
+mir-stackv4: mir-stackv4.tar.gz Dockerfile.stackv4 mir-runner
+	docker build -t mir-stackv4 -f Dockerfile.stackv4 .
 
-.PHONY: unikernel-mathopd
-unikernel-mathopd: unikernel-mathopd.tar.gz Dockerfile.mathopd config-mathopd.json
-	docker build $(Q) -t unikernel-mathopd -f Dockerfile.mathopd .
+# Mirage 'static_website' sample: intermediate build container.
+mir-static_website.tar.gz: Dockerfile.static_website-build
+	docker build -t mir-static_website-build -f Dockerfile.static_website-build .
+	docker run --rm mir-static_website-build > mir-static_website.tar.gz
 
-unikernel-wopr.tar.gz: Dockerfile.wopr-build wopr/wopr.c
-	docker build $(Q) -t unikernel-wopr-build -f Dockerfile.wopr-build .
-	docker run --rm unikernel-wopr-build > unikernel-wopr.tar.gz
+# Mirage 'static_website' sample: mir-static_website.
+.PHONY: mir-static_website
+mir-static_website: mir-static_website.tar.gz Dockerfile.static_website mir-runner
+	docker build -t mir-static_website -f Dockerfile.static_website .
 
-.PHONY: unikernel-wopr
-unikernel-wopr: unikernel-wopr.tar.gz Dockerfile.wopr
-	docker build $(Q) -t unikernel-wopr -f Dockerfile.wopr .
-
-.PHONY: run-mathopd
-run-mathopd:
-	docker run --rm -ti \
-	    --device /dev/kvm:/dev/kvm \
-	    --device /dev/net/tun:/dev/net/tun \
-	    --cap-add NET_ADMIN \
-	    unikernel-mathopd
-
-.PHONY: run-wopr
-run-wopr:
-	docker run --rm -ti \
-	    --device /dev/kvm:/dev/kvm \
-	    --device /dev/net/tun:/dev/net/tun \
-	    --cap-add NET_ADMIN \
-	    unikernel-wopr
-
-.PHONY: clean
+.PHONY: clean clobber
 clean:
-	-docker rmi -f unikernel-runner unikernel-runner-build
-	-docker rmi -f unikernel-mathopd unikernel-mathopd-build
-	-docker rmi -f unikernel-wopr unikernel-wopr-build
-	rm -f unikernel-runner.tar.gz unikernel-mathopd.tar.gz
-	rm -f unikernel-wopr.tar.gz
+	$(RM) runner.tar.gz mir-stackv4.tar.gz mir-static_website.tar.gz
 
-# QEMU takes ages to build, so don't clean it by default.
-.PHONY: clean-qemu
-clean-qemu:
-	-docker rmi -f unikernel-qemu-build
-	rm -f qemu.tar.gz
-
-.PHONY: push
-push: all
-	docker tag unikernel-runner mato/unikernel-runner
-	docker tag unikernel-wopr mato/unikernel-wopr
-	docker tag unikernel-mathopd mato/unikernel-mathopd
-	docker push mato/unikernel-runner
-	docker push mato/unikernel-wopr
-	docker push mato/unikernel-mathopd
+# Run to clean all images, include intermediate containers.
+clobber: clean
+	docker rmi -f mir-runner mir-runner-build \
+	    mir-stackv4 mir-stackv4-build \
+	    mir-static_website mir-static_website-build

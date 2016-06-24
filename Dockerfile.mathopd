@@ -1,3 +1,0 @@
-FROM unikernel-runner
-ADD unikernel-mathopd.tar.gz /unikernel/
-ADD config-mathopd.json /unikernel/config.json
