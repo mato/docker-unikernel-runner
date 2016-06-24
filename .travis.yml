@@ -3,4 +3,5 @@ dist: trusty
 services:
     - docker
 language: generic
-script: make && make run-tests
+script: make
+after_script: make run-tests
