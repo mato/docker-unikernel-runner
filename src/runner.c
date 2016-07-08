@@ -38,6 +38,8 @@
 
 #include <cap-ng.h>
 
+#include "ptrvec.h"
+
 /* Container-side network interface to use */
 #define VETH_LINK_NAME   "eth0"
 /* Name of bridge interface to create */
@@ -210,10 +212,37 @@ static int get_default_gw_inet_addr(struct nl_sock *sk, struct nl_addr **addr)
 
 int main(int argc, char *argv[])
 {
-    if (argc < 2) {
-        fprintf(stderr, "usage: runner UNIKERNEL [ ARGS... ]\n");
+    char *unikernel;
+    enum {
+        QEMU,
+        KVM,
+        UKVM,
+        UNIX
+    } hypervisor;
+
+    if (argc < 3) {
+        fprintf(stderr, "usage: runner HYPERVISOR UNIKERNEL [ ARGS... ]\n");
+        fprintf(stderr, "HYPERVISOR: qemu | kvm | ukvm | unix\n");
         return 1;
     }
+    if (strcmp(argv[1], "qemu") == 0)
+        hypervisor = QEMU;
+    else if (strcmp(argv[1], "kvm") == 0)
+        hypervisor = KVM;
+    else if (strcmp(argv[1], "ukvm") == 0)
+        hypervisor = UKVM;
+    else if (strcmp(argv[1], "unix") == 0)
+        hypervisor = UNIX;
+    else {
+        fprintf(stderr, "error: Invalid hypervisor: %s\n", argv[1]);
+        return 1;
+    }
+    unikernel = argv[2];
+    /*
+     * Remaining arguments are to be passed on to the unikernel.
+     */
+    argv += 3;
+    argc -= 3;
 
     /*
      * Check we have CAP_NET_ADMIN.
@@ -356,62 +385,137 @@ int main(int argc, char *argv[])
     rtnl_link_put(l_up);
 
     /*
-     * Build unikernel argv, merging any supplied arguments.
+     * Collect network configuration data.
      */
-    char *uargv[(argc - 1) + 5];
-    int nargv = 0;
-    for (int i = 1; i < argc; i++, nargv++) {
-        uargv[nargv] = strdup(argv[i]);
-        assert(uargv[nargv]);
-    }
-
-    char addr_buf[AF_INET_BUFSIZE];
-    if (inet_ntop(AF_INET, nl_addr_get_binary_addr(veth_addr), addr_buf,
-            sizeof addr_buf) == NULL) {
+    char uarg_ip[AF_INET_BUFSIZE];
+    if (inet_ntop(AF_INET, nl_addr_get_binary_addr(veth_addr), uarg_ip,
+            sizeof uarg_ip) == NULL) {
         perror("inet_ntop()");
         return 1;
     }
-    err = asprintf(&uargv[nargv++], "--ip=%s", addr_buf);
-    if (err < 0) {
-        perror("asprintf()");
-        return 1;
-    }
 
+    char uarg_netmask[AF_INET_BUFSIZE];
     in_addr_t netmask = 0;
     unsigned int prefixlen = nl_addr_get_prefixlen(veth_addr);
     for (unsigned int b = 0; b < prefixlen; b++) {
         netmask |= (1 << b);
     }
-    if (inet_ntop(AF_INET, &netmask, addr_buf, sizeof addr_buf) == NULL) {
+    if (inet_ntop(AF_INET, &netmask, uarg_netmask,
+            sizeof uarg_netmask) == NULL) {
         perror("inet_ntop()");
         return 1;
     }
-    err = asprintf(&uargv[nargv++], "--netmask=%s", addr_buf);
-    if (err < 0) {
-        perror("asprintf()");
+
+    char uarg_gw[AF_INET_BUFSIZE];
+    if (inet_ntop(AF_INET, nl_addr_get_binary_addr(gw_addr), uarg_gw,
+            sizeof uarg_gw) == NULL) {
+        perror("inet_ntop()");
         return 1;
     }
 
-    if (gw_addr != NULL) {
-        if (inet_ntop(AF_INET, nl_addr_get_binary_addr(gw_addr), addr_buf,
-                sizeof addr_buf) == NULL) {
-            perror("inet_ntop()");
+    /*
+     * Build unikernel and hypervisor arguments.
+     */
+    ptrvec* uargpv = pvnew();
+    char *uarg_buf;
+    /*
+     * QEMU/KVM:
+     * /usr/bin/qemu-system-x86_64 <qemu args> -kernel <unikernel> -append "<unikernel args>"
+     */
+    if (hypervisor == QEMU || hypervisor == KVM) {
+        pvadd(uargpv, "/usr/bin/qemu-system-x86_64");
+        pvadd(uargpv, "-vga");
+        pvadd(uargpv, "none");
+        pvadd(uargpv, "-nographic");
+        if (hypervisor == KVM) {
+            pvadd(uargpv, "-enable-kvm");
+            pvadd(uargpv, "-cpu host");
+        }
+        pvadd(uargpv, "-device");
+        pvadd(uargpv, "virtio-net,netdev=n0");
+        pvadd(uargpv, "-netdev");
+        err = asprintf(&uarg_buf, "tap,id=n0,ifname=%s,script=no,downscript=no",
+            TAP_LINK_NAME);
+        assert(err != -1);
+        pvadd(uargpv, uarg_buf);
+        pvadd(uargpv, "-kernel");
+        pvadd(uargpv, unikernel);
+        pvadd(uargpv, "-append");
+        /*
+         * TODO: Replace any occurences of ',' with ',,' in -append, because
+         * QEMU arguments are insane.
+         */
+        char cmdline[1024];
+        char *cmdline_p = cmdline;
+        size_t cmdline_free = sizeof cmdline;
+        for (; *argv; argc--, argv++) {
+            size_t alen = snprintf(cmdline_p, cmdline_free, "%s%s", *argv,
+                    (argc > 1) ? " " : "");
+            if (alen >= cmdline_free) {
+                fprintf(stderr, "error: Command line too long\n");
+                return 1;
+            }
+            cmdline_free -= alen;
+            cmdline_p += alen;
+        }
+        size_t alen = snprintf(cmdline_p, cmdline_free,
+                "--ip=%s --netmask=%s --gateways=%s",
+                uarg_ip, uarg_netmask, uarg_gw);
+        if (alen >= cmdline_free) {
+            fprintf(stderr, "error: Command line too long\n");
             return 1;
         }
-        err = asprintf(&uargv[nargv++], "--gateways=%s", addr_buf);
-        if (err < 0) {
-            perror("asprintf()");
-            return 1;
-        }
+        pvadd(uargpv, cmdline);
     }
+    /*
+     * UKVM:
+     * /unikernel/ukvm <ukvm args> <unikernel> -- <unikernel args>
+     */
+    else if (hypervisor == UKVM) {
+        pvadd(uargpv, "/unikernel/ukvm");
+        pvadd(uargpv, "--disk=/dev/zero"); /* XXX */
+        err = asprintf(&uarg_buf, "--net=%s", TAP_LINK_NAME);
+        assert(err != -1);
+        pvadd(uargpv, uarg_buf);
+        pvadd(uargpv, unikernel);
+        pvadd(uargpv, "--");
+        for (; *argv; argc--, argv++) {
+            pvadd(uargpv, *argv);
+        }
+        err = asprintf(&uarg_buf, "--ip=%s", uarg_ip);
+        assert(err != -1);
+        pvadd(uargpv, uarg_buf);
+        err = asprintf(&uarg_buf, "--netmask=%s", uarg_netmask);
+        assert(err != -1);
+        pvadd(uargpv, uarg_buf);
+        err = asprintf(&uarg_buf, "--gateways=%s", uarg_gw);
+        assert(err != -1);
+        pvadd(uargpv, uarg_buf);
+    }
+    /*
+     * UNIX:
+     * <unikernel> <unikernel args>
+     */
+    else if (hypervisor == UNIX) {
+        pvadd(uargpv, unikernel);
+        err = asprintf(&uarg_buf, "--network=%s", TAP_LINK_NAME);
+        assert(err != -1);
+        pvadd(uargpv, uarg_buf);
+        for (; *argv; argc--, argv++) {
+            pvadd(uargpv, *argv);
+        }
+        err = asprintf(&uarg_buf, "--ip=%s", uarg_ip);
+        assert(err != -1);
+        pvadd(uargpv, uarg_buf);
+        err = asprintf(&uarg_buf, "--netmask=%s", uarg_netmask);
+        assert(err != -1);
+        pvadd(uargpv, uarg_buf);
+        err = asprintf(&uarg_buf, "--gateways=%s", uarg_gw);
+        assert(err != -1);
+        pvadd(uargpv, uarg_buf);
+    }
+    char **uargv = (char **)pvfinal(uargpv);
 
-    err = asprintf(&uargv[nargv++], "--network=%s", TAP_LINK_NAME);
-    if (err < 0) {
-        perror("asprintf()");
-        return 1;
-    }
-    uargv[nargv] = NULL;
-   
     /*
      * Done with netlink, free all resources and close socket.
      */
@@ -440,8 +544,8 @@ int main(int argc, char *argv[])
     /*
      * Run the unikernel.
      */
-    err = execv(argv[1], uargv);
-    fprintf(stderr, "error: execv() of %s failed: %s", argv[1],
+    err = execv(uargv[0], uargv);
+    fprintf(stderr, "error: execv() of %s failed: %s", uargv[0],
             strerror(errno));
     return 1;
 }
