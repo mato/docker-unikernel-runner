@@ -429,7 +429,15 @@ int main(int argc, char *argv[])
         pvadd(uargpv, "-nographic");
         if (hypervisor == KVM) {
             pvadd(uargpv, "-enable-kvm");
-            pvadd(uargpv, "-cpu host");
+            pvadd(uargpv, "-cpu");
+            pvadd(uargpv, "host");
+        }
+        else {
+            /*
+             * Required for AESNI use in Mirage.
+             */
+            pvadd(uargpv, "-cpu");
+            pvadd(uargpv, "Broadwell");
         }
         pvadd(uargpv, "-device");
         pvadd(uargpv, "virtio-net,netdev=n0");

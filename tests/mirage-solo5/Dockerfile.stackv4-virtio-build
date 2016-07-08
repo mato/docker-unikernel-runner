@@ -1,0 +1,19 @@
+# Build container for Mirage 'stackv4' example (virtio version).
+
+# Build distro must match that used to build 'mir-runner'.
+FROM ocaml/opam:alpine
+
+# Workaround for issue with current opam:alpine images.
+RUN sudo apk add --no-cache ncurses-dev
+
+# Solo5 packages are not upstreamed yet.
+RUN opam repo add solo5 git://github.com/djwillia/opam-solo5
+RUN opam depext -i mirage
+RUN git clone http://github.com/mirage/mirage-skeleton
+WORKDIR /home/opam/mirage-skeleton/stackv4
+RUN opam config exec -- mirage configure --virtio
+RUN opam config exec make
+
+# "Run" phase outputs built unikernel as a .tar.gz.
+CMD tar -C /home/opam/mirage-skeleton/stackv4 -czh -f - \
+    mir-stackv4.virtio
