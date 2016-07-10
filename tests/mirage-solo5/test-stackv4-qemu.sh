@@ -1,7 +1,6 @@
 #!/bin/sh
 set -ex
 docker run -d --name test-mir-stackv4-qemu \
-    --device=/dev/kvm:/dev/kvm \
     --device=/dev/net/tun:/dev/net/tun \
     --cap-add=NET_ADMIN mir-stackv4-qemu
 IP=$(docker inspect --format "{{ .NetworkSettings.IPAddress }}" test-mir-stackv4-qemu)
