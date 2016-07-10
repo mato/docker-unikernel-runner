@@ -1,10 +1,7 @@
 # Build container for Mirage 'stackv4' example (virtio version).
 
 # Build distro must match that used to build 'mir-runner'.
-FROM ocaml/opam:alpine
-
-# Workaround for issue with current opam:alpine images.
-RUN sudo apk add --no-cache ncurses-dev
+FROM ocaml/opam:debian-8_ocaml-4.03.0
 
 # Solo5 packages are not upstreamed yet.
 RUN opam repo add solo5 git://github.com/djwillia/opam-solo5

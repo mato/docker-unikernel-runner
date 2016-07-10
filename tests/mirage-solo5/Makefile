@@ -7,11 +7,13 @@ clean:
 
 clobber: clean
 	-docker rmi -f \
-	    mir-stackv4-ukvm mir-stackv4-qemu mir-stackv4-ukvm-build
+	    mir-stackv4-ukvm mir-stackv4-ukvm-build \
+	    mir-stackv4-qemu mir-stackv4-virtio-build
 
 .PHONY: run
 run:
 	./test-stackv4-ukvm.sh
+	./test-stackv4-qemu.sh
 
 # Mirage 'stackv4' sample (ukvm): intermediate build container.
 mir-stackv4-ukvm.tar.gz: Dockerfile.stackv4-ukvm-build

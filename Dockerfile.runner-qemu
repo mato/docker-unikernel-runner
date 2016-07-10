@@ -1,0 +1,13 @@
+# "Runtime" container for mirage-unix runner.
+
+FROM debian:latest
+RUN apt-get update && \
+    DEBIAN_FRONTEND=noninteractive apt-get install -q -y \
+        --no-install-recommends \
+        libcap-ng0 \
+        libnl-3-200 \
+        libnl-route-3-200 \
+        qemu-system-x86 \
+    && apt-get clean
+ADD runner-debian.tar.gz /runtime/
+ENTRYPOINT ["/runtime/runner"]

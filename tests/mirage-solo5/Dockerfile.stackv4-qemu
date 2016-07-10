@@ -1,7 +1,6 @@
 # Runtime container for Mirage 'stackv4' example (qemu version).
 
-FROM mir-runner
-RUN apk add --update --no-cache qemu-system-x86_64
+FROM mir-runner-qemu
 ADD mir-stackv4-virtio.tar.gz /unikernel/
 
 # ENTRYPOINT is already set by mir-runner.
