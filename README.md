@@ -5,8 +5,9 @@ This is an experimental unikernel runner for running
 following Mirage OS targets are supported:
 
 * `unix`: UNIX userspace using the `direct` network stack.
-* `ukvm` (_experimental_): Mirage OS/[Solo5](https://github.com/djwillia/solo5)
-  using the `ukvm` hypervisor.
+* `ukvm`: Mirage OS/[Solo5](https://github.com/djwillia/solo5)
+* `qemu`, `kvm` (_experimental_): Mirage OS/[Solo5](https://github.com/djwillia/solo5)
+  using software emulation (`qemu`) or QEMU/KVM (`kvm`) as a hypervisor.
 
 ## Building
 
@@ -45,10 +46,6 @@ the unikernel.
 
 ### Mirage OS/Solo5
 
-The Mirage OS/[Solo5](https://github.com/djwillia/solo5) port is still a work
-in progress and is incomplete. The progress of the port can be followed at
-[djwillia/solo5#36](https://github.com/djwillia/solo5/issues/36).
-
 To run the `mir-stackv4` sample using `ukvm` as a hypervisor:
 
 ````
@@ -64,3 +61,4 @@ required.
 
 * ([mirage/mirage-net-unix#23](https://github.com/mirage/mirage-net-unix/issues/23)) Mirage OS `direct` networking stack on `unix` always starts with the same MAC address. Until this is fixed it is not possible to run more than one unikernel.
 * ([#1](https://github.com/mato/docker-unikernel-runner/issues/1)) Network delays due to random MAC address use. 
+* `qemu` and `kvm` support is experimental, currently uses Debian to build the containers due to unknown issues with the Alpine toolchain. Also, this setup currently uses a hard-coded MAC address, so you will not be able to run more than one unikernel.
