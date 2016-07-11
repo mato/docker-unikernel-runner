@@ -10,4 +10,7 @@ RUN apt-get update && \
         qemu-system-x86 \
     && apt-get clean
 ADD runner-debian.tar.gz /runtime/
-ENTRYPOINT ["/runtime/runner"]
+
+# Should be set explicitly downstream.
+ENTRYPOINT []
+CMD []

@@ -3,4 +3,7 @@
 FROM alpine:latest
 RUN apk add --update --no-cache libnl3 libcap-ng
 ADD runner.tar.gz /runtime/
-ENTRYPOINT ["/runtime/runner"]
+
+# Should be set explicitly downstream.
+ENTRYPOINT []
+CMD []

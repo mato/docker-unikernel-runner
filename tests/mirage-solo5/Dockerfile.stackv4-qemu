@@ -3,5 +3,4 @@
 FROM mir-runner-qemu
 ADD mir-stackv4-virtio.tar.gz /unikernel/
 
-# ENTRYPOINT is already set by mir-runner.
-CMD ["qemu", "/unikernel/mir-stackv4.virtio"]
+CMD ["/runtime/runner", "qemu", "/unikernel/mir-stackv4.virtio"]

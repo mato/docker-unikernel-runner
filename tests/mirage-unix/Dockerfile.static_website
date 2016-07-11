@@ -5,5 +5,4 @@ FROM mir-runner
 RUN apk add --update --no-cache gmp
 ADD mir-static_website.tar.gz /unikernel/
 
-# ENTRYPOINT is already set by mir-runner.
-CMD ["unix", "/unikernel/mir-www"]
+CMD ["/runtime/runner", "unix", "/unikernel/mir-www"]
