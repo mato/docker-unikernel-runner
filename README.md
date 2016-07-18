@@ -5,8 +5,8 @@ This is an experimental unikernel runner for running
 following Mirage OS targets are supported:
 
 * `unix`: UNIX userspace using the `direct` network stack.
-* `ukvm`: Mirage OS/[Solo5](https://github.com/djwillia/solo5) using ukvm as the hypervisor.
-* `qemu`, `kvm` (_experimental_): Mirage OS/[Solo5](https://github.com/djwillia/solo5)
+* `ukvm`: Mirage OS/[Solo5](https://github.com/solo5/solo5) using ukvm as the hypervisor.
+* `qemu`, `kvm` (_experimental_): Mirage OS/[Solo5](https://github.com/solo5/solo5)
   using software emulation (`qemu`) or QEMU/KVM (`kvm`) as the hypervisor.
 
 ## Building

@@ -4,7 +4,7 @@
 FROM ocaml/opam:debian-8_ocaml-4.03.0
 
 # Solo5 packages are not upstreamed yet.
-RUN opam repo add solo5 git://github.com/djwillia/opam-solo5
+RUN opam repo add solo5 git://github.com/solo5/opam-solo5
 RUN opam depext -i mirage
 RUN git clone http://github.com/mirage/mirage-skeleton
 WORKDIR /home/opam/mirage-skeleton/stackv4
