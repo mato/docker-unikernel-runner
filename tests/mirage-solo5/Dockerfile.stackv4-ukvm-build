@@ -1,7 +1,7 @@
 # Build container for Mirage 'stackv4' example (ukvm version).
 
 # Build distro must match that used to build 'mir-runner'.
-FROM ocaml/opam:alpine
+FROM ocaml/opam:alpine-3.4_ocaml-4.03.0
 
 # Workaround for issue with current opam:alpine images.
 RUN sudo apk add --no-cache ncurses-dev
