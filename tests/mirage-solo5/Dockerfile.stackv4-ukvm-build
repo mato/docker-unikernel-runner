@@ -13,9 +13,8 @@ RUN git clone http://github.com/mirage/mirage-skeleton
 WORKDIR /home/opam/mirage-skeleton/stackv4
 RUN opam config exec -- mirage configure --ukvm
 RUN opam config exec make
-# Copy ukvm from OPAM bin directory as run phase needs output in a single
-# directory.
-RUN cp $(opam config var prefix)/bin/ukvm .
+# runner expects ukvm binary in /unikernel/ukvm
+RUN cp ./ukvm-bin ./ukvm
 
 # "Run" phase outputs built unikernel and ukvm as a .tar.gz.
 CMD tar -C /home/opam/mirage-skeleton/stackv4 -czh -f - \

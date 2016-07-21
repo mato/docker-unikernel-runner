@@ -481,7 +481,6 @@ int main(int argc, char *argv[])
      */
     else if (hypervisor == UKVM) {
         pvadd(uargpv, "/unikernel/ukvm");
-        pvadd(uargpv, "--disk=/dev/zero"); /* XXX */
         err = asprintf(&uarg_buf, "--net=%s", TAP_LINK_NAME);
         assert(err != -1);
         pvadd(uargpv, uarg_buf);
