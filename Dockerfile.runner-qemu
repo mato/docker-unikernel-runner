@@ -1,6 +1,6 @@
 # "Runtime" container for mirage-unix runner.
 
-FROM debian:latest
+FROM debian:jessie
 RUN apt-get update && \
     DEBIAN_FRONTEND=noninteractive apt-get install -q -y \
         --no-install-recommends \
