@@ -4,4 +4,4 @@ services:
     - docker
 language: generic
 script: make
-after_script: make run-tests
+after_script: sudo sysctl -w net.ipv4.conf.docker0.arp_accept=1 && make run-tests

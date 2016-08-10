@@ -4,6 +4,7 @@ build: mir-stackv4-ukvm mir-stackv4-qemu
 .PHONY: clean clobber
 clean:
 	$(RM) mir-stackv4-ukvm.tar.gz
+	$(RM) mir-stackv4-virtio.tar.gz
 
 clobber: clean
 	-docker rmi -f \
