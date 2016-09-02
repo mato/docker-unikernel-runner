@@ -59,6 +59,5 @@ required.
 
 ## Known issues
 
-* ([mirage/mirage-net-unix#23](https://github.com/mirage/mirage-net-unix/issues/23)) Mirage OS `direct` networking stack on `unix` always starts with the same MAC address. Until this is fixed it is not possible to run more than one unikernel.
-* ([#1](https://github.com/mato/docker-unikernel-runner/issues/1)) Network delays due to random MAC address use. 
-* `qemu` and `kvm` support is experimental, currently uses Debian to build the containers due to unknown issues with the Alpine toolchain. Also, this setup currently uses a hard-coded MAC address, so you will not be able to run more than one unikernel.
+* ([#1](https://github.com/mato/docker-unikernel-runner/issues/1)) Network delays due to random MAC address use. Workaround is: `sysctl -w net.ipv4.conf.docker0.arp_accept=1`.
+* `qemu` and `kvm` support is experimental, currently uses Debian to build the containers due to unknown issues with the Alpine toolchain.

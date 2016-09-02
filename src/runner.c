@@ -210,6 +210,35 @@ static int get_default_gw_inet_addr(struct nl_sock *sk, struct nl_addr **addr)
     return 0;
 }
 
+/*
+ * Generate a random, locally-administered, unicast MAC address and return
+ * a pointer to an allocated string representation of it or NULL if an error
+ * occured.
+ */
+static char *generate_mac(void)
+{
+    int fd = open("/dev/urandom", O_RDONLY);
+    if (fd == -1) {
+        fprintf(stderr, "error: Could not open /dev/urandom: %s\n",
+                strerror(errno));
+        return NULL;
+    }
+
+    unsigned char guest_mac[6];
+    int rc = read(fd, guest_mac, sizeof(guest_mac));
+    assert(rc == sizeof(guest_mac));
+    close(fd);
+    guest_mac[0] &= 0xfe;
+    guest_mac[0] |= 0x02;
+
+    char *str_mac;
+    rc = asprintf(&str_mac, "%02x:%02x:%02x:%02x:%02x:%02x",
+            guest_mac[0], guest_mac[1], guest_mac[2],
+            guest_mac[3], guest_mac[4], guest_mac[5]);
+    assert(rc != -1);
+    return str_mac;
+}
+
 int main(int argc, char *argv[])
 {
     char *unikernel;
@@ -440,7 +469,11 @@ int main(int argc, char *argv[])
             pvadd(uargpv, "Broadwell");
         }
         pvadd(uargpv, "-device");
-        pvadd(uargpv, "virtio-net,netdev=n0");
+        char *guest_mac = generate_mac();
+        assert(guest_mac);
+        err = asprintf(&uarg_buf, "virtio-net-pci,netdev=n0,mac=%s", guest_mac);
+        assert(err != -1);
+        pvadd(uargpv, uarg_buf);
         pvadd(uargpv, "-netdev");
         err = asprintf(&uarg_buf, "tap,id=n0,ifname=%s,script=no,downscript=no",
             TAP_LINK_NAME);
