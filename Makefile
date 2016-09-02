@@ -8,6 +8,7 @@ tests: mir-runner
 
 .PHONY: run-tests
 run-tests: tests
+	./check-tests.sh
 	$(MAKE) -C tests/mirage-unix run
 	$(MAKE) -C tests/mirage-solo5 run
 
