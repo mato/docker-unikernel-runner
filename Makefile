@@ -1,8 +1,11 @@
 .PHONY: all
-all: mir-runner mir-runner-qemu tests
+all: runner
+
+.PHONY: runner
+runner: mir-runner mir-runner-qemu
 
 .PHONY: tests
-tests: mir-runner
+tests: runner
 	$(MAKE) -C tests/mirage-unix
 	$(MAKE) -C tests/mirage-solo5
 

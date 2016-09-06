@@ -9,19 +9,41 @@ following Mirage OS targets are supported:
 * `qemu`, `kvm` (_experimental_): Mirage OS/[Solo5](https://github.com/solo5/solo5)
   using software emulation (`qemu`) or QEMU/KVM (`kvm`) as the hypervisor.
 
-## Building
+# Quick start with a Mirage application
 
 You will need `docker` (obviously) and `make` to drive the top-level build
 process. The build itself is all run in containers so there are no other host
 requirements.
 
-To build the runner and all tests, run:
+1. Clone this repository, run `make`. This will build the `mir-runner` and
+   `mir-runner-qemu` base images.
+2. Place `docker-mirage.sh` somewhere in your $PATH.
+3. In the directory containing your built Mirage application, run
+   `docker-mirage.sh build HYPERVISOR -t my-unikernel`, where _HYPERVISOR_ is
+   one of the supported targets (see **note**).
+4. Run the unikernel with `docker-mirage.sh run --rm -ti my-unikernel`.
+
+**Note:** If you're using Docker for Mac or Docker for Windows, then you will
+only be able to _run_ images built for the `qemu` HYPERVISOR locally.
+
+# Detailed instructions
+
+This section covers more about how runner works, including how to manually
+build your own unikernel images without the `docker-mirage` wrapper script.
+
+## Building
+
+
+To build the runner and all example containers, run:
 
 ````
-make
+make tests
 ````
 
-## Running the sample containers
+See the `Makefile`s under the `tests/` directory for an example of how to
+manually build unikernel images.
+
+## Running the example containers
 
 Use `make run-tests` to run all tests available on your host. The Mirage/Solo5
 tests require KVM and access to `/dev/kvm`.
