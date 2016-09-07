@@ -456,6 +456,8 @@ int main(int argc, char *argv[])
         pvadd(uargpv, "-vga");
         pvadd(uargpv, "none");
         pvadd(uargpv, "-nographic");
+        pvadd(uargpv, "-m");
+        pvadd(uargpv, "512");
         if (hypervisor == KVM) {
             pvadd(uargpv, "-enable-kvm");
             pvadd(uargpv, "-cpu");
