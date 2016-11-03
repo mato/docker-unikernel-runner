@@ -444,9 +444,12 @@ int main(int argc, char *argv[])
      */
     if (hypervisor == QEMU || hypervisor == KVM) {
         pvadd(uargpv, "/usr/bin/qemu-system-x86_64");
-        pvadd(uargpv, "-vga");
+        pvadd(uargpv, "-nodefaults");
+        pvadd(uargpv, "-no-acpi");
+        pvadd(uargpv, "-display");
         pvadd(uargpv, "none");
-        pvadd(uargpv, "-nographic");
+        pvadd(uargpv, "-serial");
+        pvadd(uargpv, "stdio");
         pvadd(uargpv, "-m");
         pvadd(uargpv, "512");
         if (hypervisor == KVM) {
@@ -459,7 +462,7 @@ int main(int argc, char *argv[])
              * Required for AESNI use in Mirage.
              */
             pvadd(uargpv, "-cpu");
-            pvadd(uargpv, "Broadwell");
+            pvadd(uargpv, "Westmere");
         }
         pvadd(uargpv, "-device");
         char *guest_mac = generate_mac();
