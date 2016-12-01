@@ -16,7 +16,8 @@ $(VENDOR)/libnl/stamp-build: $(VENDOR)/libnl/Makefile
 	touch $@
 
 $(VENDOR)/libnl/Makefile: $(VENDOR)/libnl/configure
-	cd $(VENDOR)/libnl && ./configure --disable-shared --disable-cli \
+	cd $(VENDOR)/libnl && CFLAGS=-Wno-cpp ./configure --disable-shared \
+	    --disable-cli \
 	    --disable-pthreads
 
 $(VENDOR)/libnl/configure:
