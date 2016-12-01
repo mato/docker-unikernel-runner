@@ -3,14 +3,17 @@
 # Build distro must match that used to build 'mir-runner'.
 FROM ocaml/opam:alpine-3.4_ocaml-4.03.0
 
-# Workaround for issue with current opam:alpine images.
-RUN sudo apk add --no-cache ncurses-dev
-
 RUN opam repo add mirage-dev git://github.com/mirage/mirage-dev
 RUN opam depext -i mirage
 RUN git clone -b mirage-dev http://github.com/mirage/mirage-skeleton
 WORKDIR /home/opam/mirage-skeleton/static_website
 RUN opam config exec -- mirage configure -t unix
+
+# Until we have a fix for mirage/mirage#703 not installing depexts, install
+# them manually.
+RUN sudo apk add --no-cache linux-headers autoconf perl gmp-dev
+
+RUN opam config exec make depend
 RUN opam config exec make
 
 # "Run" phase outputs built unikernel as a .tar.gz.

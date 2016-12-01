@@ -416,24 +416,15 @@ int main(int argc, char *argv[])
     /*
      * Collect network configuration data.
      */
+    char ip[AF_INET_BUFSIZE];
+    if (inet_ntop(AF_INET, nl_addr_get_binary_addr(veth_addr), ip,
+            sizeof ip) == NULL) {
+        perror("inet_ntop()");
+        return 1;
+    }
     char uarg_ip[AF_INET_BUFSIZE];
-    if (inet_ntop(AF_INET, nl_addr_get_binary_addr(veth_addr), uarg_ip,
-            sizeof uarg_ip) == NULL) {
-        perror("inet_ntop()");
-        return 1;
-    }
-
-    char uarg_netmask[AF_INET_BUFSIZE];
-    in_addr_t netmask = 0;
     unsigned int prefixlen = nl_addr_get_prefixlen(veth_addr);
-    for (unsigned int b = 0; b < prefixlen; b++) {
-        netmask |= (1 << b);
-    }
-    if (inet_ntop(AF_INET, &netmask, uarg_netmask,
-            sizeof uarg_netmask) == NULL) {
-        perror("inet_ntop()");
-        return 1;
-    }
+    snprintf(uarg_ip, sizeof uarg_ip, "%s/%u", ip, prefixlen);
 
     char uarg_gw[AF_INET_BUFSIZE];
     if (inet_ntop(AF_INET, nl_addr_get_binary_addr(gw_addr), uarg_gw,
@@ -502,8 +493,7 @@ int main(int argc, char *argv[])
             cmdline_p += alen;
         }
         size_t alen = snprintf(cmdline_p, cmdline_free,
-                "--ip=%s --netmask=%s --gateways=%s",
-                uarg_ip, uarg_netmask, uarg_gw);
+                "--ipv4=%s --ipv4-gateway=%s", uarg_ip, uarg_gw);
         if (alen >= cmdline_free) {
             fprintf(stderr, "error: Command line too long\n");
             return 1;
@@ -519,18 +509,15 @@ int main(int argc, char *argv[])
         err = asprintf(&uarg_buf, "--net=%s", TAP_LINK_NAME);
         assert(err != -1);
         pvadd(uargpv, uarg_buf);
-        pvadd(uargpv, unikernel);
         pvadd(uargpv, "--");
+        pvadd(uargpv, unikernel);
         for (; *argv; argc--, argv++) {
             pvadd(uargpv, *argv);
         }
-        err = asprintf(&uarg_buf, "--ip=%s", uarg_ip);
+        err = asprintf(&uarg_buf, "--ipv4=%s", uarg_ip);
         assert(err != -1);
         pvadd(uargpv, uarg_buf);
-        err = asprintf(&uarg_buf, "--netmask=%s", uarg_netmask);
-        assert(err != -1);
-        pvadd(uargpv, uarg_buf);
-        err = asprintf(&uarg_buf, "--gateways=%s", uarg_gw);
+        err = asprintf(&uarg_buf, "--ipv4-gateway=%s", uarg_gw);
         assert(err != -1);
         pvadd(uargpv, uarg_buf);
     }
@@ -540,19 +527,16 @@ int main(int argc, char *argv[])
      */
     else if (hypervisor == UNIX) {
         pvadd(uargpv, unikernel);
-        err = asprintf(&uarg_buf, "--network=%s", TAP_LINK_NAME);
+        err = asprintf(&uarg_buf, "--interface=%s", TAP_LINK_NAME);
         assert(err != -1);
         pvadd(uargpv, uarg_buf);
         for (; *argv; argc--, argv++) {
             pvadd(uargpv, *argv);
         }
-        err = asprintf(&uarg_buf, "--ip=%s", uarg_ip);
+        err = asprintf(&uarg_buf, "--ipv4=%s", uarg_ip);
         assert(err != -1);
         pvadd(uargpv, uarg_buf);
-        err = asprintf(&uarg_buf, "--netmask=%s", uarg_netmask);
-        assert(err != -1);
-        pvadd(uargpv, uarg_buf);
-        err = asprintf(&uarg_buf, "--gateways=%s", uarg_gw);
+        err = asprintf(&uarg_buf, "--ipv4-gateway=%s", uarg_gw);
         assert(err != -1);
         pvadd(uargpv, uarg_buf);
     }
