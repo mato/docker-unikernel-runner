@@ -14,6 +14,7 @@
  * IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 #include <assert.h>
+#include <err.h>
 #include <errno.h>
 #include <stdio.h>
 
@@ -139,7 +140,7 @@ static int get_link_inet_addr(struct nl_sock *sk, struct rtnl_link *link,
     nl_cache_foreach_filter(addr_cache, (struct nl_object *)filter,
             match_first_addr, addr);
     if (*addr == NULL) {
-        fprintf(stderr, "No AF_INET address found on veth\n");
+        warnx("No AF_INET address found on veth");
         
         rtnl_addr_put(filter);
         nl_cache_free(addr_cache);
@@ -219,8 +220,7 @@ static char *generate_mac(void)
 {
     int fd = open("/dev/urandom", O_RDONLY);
     if (fd == -1) {
-        fprintf(stderr, "error: Could not open /dev/urandom: %s\n",
-                strerror(errno));
+        warn("error: Could not open /dev/urandom");
         return NULL;
     }
 
@@ -263,7 +263,7 @@ int main(int argc, char *argv[])
     else if (strcmp(argv[1], "unix") == 0)
         hypervisor = UNIX;
     else {
-        fprintf(stderr, "error: Invalid hypervisor: %s\n", argv[1]);
+        warnx("error: Invalid hypervisor: %s", argv[1]);
         return 1;
     }
     unikernel = argv[2];
@@ -277,11 +277,11 @@ int main(int argc, char *argv[])
      * Check we have CAP_NET_ADMIN.
      */
     if (capng_get_caps_process() != 0) {
-        fprintf(stderr, "error: capng_get_caps_process() failed\n");
+        warnx("error: capng_get_caps_process() failed");
         return 1;
     }
     if (!capng_have_capability(CAPNG_EFFECTIVE, CAP_NET_ADMIN)) {
-        fprintf(stderr, "error: CAP_NET_ADMIN is required\n");
+        warnx("error: CAP_NET_ADMIN is required");
         return 1;
     }
 
@@ -318,18 +318,18 @@ int main(int argc, char *argv[])
     struct nl_addr *veth_addr;
     err = get_link_inet_addr(sk, l_veth, &veth_addr);
     if (err) {
-        fprintf(stderr, "error: Unable to determine IP address of %s\n",
+        warnx("error: Unable to determine IP address of %s",
                 VETH_LINK_NAME);
         return 1;
     }
     struct nl_addr *gw_addr;
     err = get_default_gw_inet_addr(sk, &gw_addr);
     if (err) {
-        fprintf(stderr, "error: get_deGfault_gw_inet_addr() failed\n");
+        warnx("error: get_deGfault_gw_inet_addr() failed");
         return 1;
     }
     if (gw_addr == NULL) {
-        fprintf(stderr, "error: No default gateway found. This is currently "
+        warnx("error: No default gateway found. This is currently "
                 "not supported");
         return 1;
     }
@@ -345,8 +345,7 @@ int main(int argc, char *argv[])
     }
     err = create_tap_link(TAP_LINK_NAME);
     if (err != 0) {
-        fprintf(stderr, "create_tap_link(%s): %s\n", TAP_LINK_NAME,
-                strerror(errno));
+        warn("create_tap_link(%s)", TAP_LINK_NAME);
         return 1;
     }
 
@@ -489,7 +488,7 @@ int main(int argc, char *argv[])
             size_t alen = snprintf(cmdline_p, cmdline_free, "%s%s", *argv,
                     (argc > 1) ? " " : "");
             if (alen >= cmdline_free) {
-                fprintf(stderr, "error: Command line too long\n");
+                warnx("error: Command line too long");
                 return 1;
             }
             cmdline_free -= alen;
@@ -498,7 +497,7 @@ int main(int argc, char *argv[])
         size_t alen = snprintf(cmdline_p, cmdline_free,
                 "--ipv4=%s --ipv4-gateway=%s", uarg_ip, uarg_gw);
         if (alen >= cmdline_free) {
-            fprintf(stderr, "error: Command line too long\n");
+            warnx("error: Command line too long");
             return 1;
         }
         pvadd(uargpv, cmdline);
@@ -566,7 +565,7 @@ int main(int argc, char *argv[])
             CAPNG_EFFECTIVE | CAPNG_PERMITTED | CAPNG_INHERITABLE,
             CAP_NET_BIND_SERVICE);
     if (capng_apply(CAPNG_SELECT_BOTH) != 0) {
-        fprintf(stderr, "error: Could not drop capabilities");
+        warnx("error: Could not drop capabilities");
         return 1;
     }
 
@@ -574,7 +573,6 @@ int main(int argc, char *argv[])
      * Run the unikernel.
      */
     err = execv(uargv[0], uargv);
-    fprintf(stderr, "error: execv() of %s failed: %s", uargv[0],
-            strerror(errno));
+    warn("error: execv() of %s failed", uargv[0]);
     return 1;
 }
