@@ -125,7 +125,7 @@ static int get_link_inet_addr(struct nl_sock *sk, struct rtnl_link *link,
     int err;
     err = rtnl_addr_alloc_cache(sk, &addr_cache);
     if (err < 0) {
-        nl_perror(err, "rtnl_addr_alloc_cache()");
+        warnx("rtnl_addr_alloc_cache() failed: %s", nl_geterror(err));
         return 1;
     }
 
@@ -180,7 +180,7 @@ static int get_default_gw_inet_addr(struct nl_sock *sk, struct nl_addr **addr)
     int err;
     err = rtnl_route_alloc_cache(sk, AF_INET, 0, &route_cache);
     if (err < 0) {
-        nl_perror(err, "rtnl_addr_alloc_cache()");
+        warnx("rtnl_addr_alloc_cache() failed: %s", nl_geterror(err));
         return 1;
     }
 
@@ -192,7 +192,7 @@ static int get_default_gw_inet_addr(struct nl_sock *sk, struct nl_addr **addr)
     struct nl_addr *filter_addr;
     err = nl_addr_parse("default", AF_INET, &filter_addr);
     if (err < 0) {
-        nl_perror(err, "nl_addr_parse(default)");
+        warnx("nl_addr_parse(default) failed: %s", nl_geterror(err));
 
         rtnl_route_put(filter);
         nl_cache_free(route_cache);
@@ -296,12 +296,12 @@ int main(int argc, char *argv[])
     assert(sk);
     err = nl_connect(sk, NETLINK_ROUTE);
     if (err < 0) {
-        nl_perror(err, "nl_connect()");
+        warnx("nl_connect() failed: %s", nl_geterror(err));
         return 1;
     }
     err = rtnl_link_alloc_cache(sk, AF_UNSPEC, &link_cache);
     if (err < 0) {
-        nl_perror(err, "rtnl_link_alloc_cache()");
+        warnx("rtnl_link_alloc_cache() failed: %s", nl_geterror(err));
         return 1;
     }
    
@@ -312,7 +312,7 @@ int main(int argc, char *argv[])
     struct rtnl_link *l_veth;
     l_veth = rtnl_link_get_by_name(link_cache, VETH_LINK_NAME);
     if (l_veth == NULL) {
-        nl_perror(err, "rtnl_link_get_by_name(" VETH_LINK_NAME ")");
+        warnx("error: Could not get link information for %s", VETH_LINK_NAME);
         return 1;
     }
     struct nl_addr *veth_addr;
@@ -340,12 +340,13 @@ int main(int argc, char *argv[])
      */
     err = create_bridge_link(sk, BRIDGE_LINK_NAME);
     if (err < 0) {
-        nl_perror(err, "create_bridge_link(" BRIDGE_LINK_NAME ")");
+        warnx("create_bridge_link(%s) failed: %s", BRIDGE_LINK_NAME,
+                nl_geterror(err));
         return 1;
     }
     err = create_tap_link(TAP_LINK_NAME);
     if (err != 0) {
-        warn("create_tap_link(%s)", TAP_LINK_NAME);
+        warnx("create_tap_link(%s) failed: %s", TAP_LINK_NAME, strerror(err));
         return 1;
     }
 
@@ -355,23 +356,25 @@ int main(int argc, char *argv[])
     struct rtnl_link *l_bridge;
     l_bridge = rtnl_link_get_by_name(link_cache, BRIDGE_LINK_NAME);
     if (l_bridge == NULL) {
-        nl_perror(err, "rtnl_link_get_by_name(" BRIDGE_LINK_NAME ")");
+        warnx("error: Could not get link information for %s", BRIDGE_LINK_NAME);
         return 1;
     }
     struct rtnl_link *l_tap;
     l_tap = rtnl_link_get_by_name(link_cache, TAP_LINK_NAME);
     if (l_tap == NULL) {
-        nl_perror(err, "rtnl_link_get_by_name(" TAP_LINK_NAME ")");
+        warnx("error: Could not get link information for %s", TAP_LINK_NAME);
         return 1;
     }
     err = rtnl_link_enslave(sk, l_bridge, l_veth);
     if (err < 0) {
-        nl_perror(err, "Unable to enslave veth to bridge");
+        warnx("error: Unable to enslave %s to %s: %s", VETH_LINK_NAME,
+                BRIDGE_LINK_NAME, nl_geterror(err));
         return 1;
     }
     err = rtnl_link_enslave(sk, l_bridge, l_tap);
     if (err < 0) {
-        nl_perror(err, "Unable to enslave tap to bridge");
+        warnx("error: Unable to enslave %s to %s: %s", TAP_LINK_NAME,
+                BRIDGE_LINK_NAME, nl_geterror(err));
         return 1;
     }
 
@@ -387,7 +390,8 @@ int main(int argc, char *argv[])
     rtnl_addr_set_local(flush_addr, veth_addr);
     err = rtnl_addr_delete(sk, flush_addr, 0);
     if (err < 0) {
-        nl_perror(err, "rtnl_addr_delete(" VETH_LINK_NAME ")");
+        warnx("error: Could not flush addresses on %s: %s", VETH_LINK_NAME,
+                nl_geterror(err));
         return 1;
     }
     rtnl_addr_put(flush_addr);
@@ -402,12 +406,14 @@ int main(int argc, char *argv[])
     rtnl_link_set_flags(l_up, IFF_UP);
     err = rtnl_link_change(sk, l_tap, l_up, 0);
     if (err < 0) {
-        nl_perror(err, "rtnl_link_change(" TAP_LINK_NAME ", UP)");
+        warnx("error: rtnl_link_change(%s, UP) failed: %s", TAP_LINK_NAME,
+                nl_geterror(err));
         return 1;
     }
     err = rtnl_link_change(sk, l_bridge, l_up, 0);
     if (err < 0) {
-        nl_perror(err, "rtnl_link_change(" BRIDGE_LINK_NAME ", UP)");
+        warnx("error: rtnl_link_change(%s, UP) failed: %s", BRIDGE_LINK_NAME,
+                nl_geterror(err));
         return 1;
     }
     rtnl_link_put(l_up);
