@@ -7,11 +7,6 @@ RUN opam repo add mirage-dev git://github.com/mirage/mirage-dev
 RUN opam depext -i mirage
 RUN git clone -b mirage-dev http://github.com/mirage/mirage-skeleton
 WORKDIR /home/opam/mirage-skeleton/stackv4
-
-# Until we have a fix for mirage/mirage#703 not installing depexts, install
-# them manually.
-RUN sudo apk add --no-cache linux-headers
-
 RUN opam config exec -- mirage configure -t unix
 RUN opam config exec make depend
 RUN opam config exec make
