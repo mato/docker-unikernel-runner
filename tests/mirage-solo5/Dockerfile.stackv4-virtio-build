@@ -14,4 +14,4 @@ RUN opam config exec make
 
 # "Run" phase outputs built unikernel as a .tar.gz.
 CMD tar -C /home/opam/mirage-skeleton/stackv4 -czh -f - \
-    mir-stackv4.virtio
+    stackv4.virtio

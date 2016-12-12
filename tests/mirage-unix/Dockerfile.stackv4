@@ -3,4 +3,4 @@
 FROM mir-runner
 ADD mir-stackv4.tar.gz /unikernel/
 
-CMD ["/runtime/runner", "unix", "/unikernel/mir-stackv4"]
+CMD ["/runtime/runner", "unix", "/unikernel/stackv4"]

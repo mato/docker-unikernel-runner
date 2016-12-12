@@ -17,4 +17,4 @@ RUN cp ./ukvm-bin ./ukvm
 # "Run" phase outputs built unikernel and ukvm as a .tar.gz.
 CMD tar -C /home/opam/mirage-skeleton/stackv4 -czh -f - \
     ukvm \
-    mir-stackv4.ukvm
+    stackv4.ukvm

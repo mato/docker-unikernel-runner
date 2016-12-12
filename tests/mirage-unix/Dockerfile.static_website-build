@@ -12,4 +12,4 @@ RUN opam config exec make depend
 RUN opam config exec make
 
 # "Run" phase outputs built unikernel as a .tar.gz.
-CMD tar -C /home/opam/mirage-skeleton/static_website -czh -f - mir-www
+CMD tar -C /home/opam/mirage-skeleton/static_website -czh -f - www
