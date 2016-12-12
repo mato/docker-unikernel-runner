@@ -51,10 +51,12 @@
 #define AF_INET_BUFSIZE  19
 
 /*
- * Create a persistent tap interface. Returns 0 if successful, system errno if
- * not.
+ * Create a tap interface. Returns 0 if successful, system errno if not.
+ *
+ * If fd_out is NULL then creates a persistent interface, otherwise
+ * returns the tap fd as *fd_out.
  */
-static int create_tap_link(const char *name)
+static int create_tap_link(const char *name, int *fd_out)
 {
     struct ifreq ifr;
     int fd;
@@ -66,15 +68,19 @@ static int create_tap_link(const char *name)
     if (fd < 0)
         return errno;
 
-    ifr.ifr_flags = IFF_TAP;
+    ifr.ifr_flags = IFF_TAP | IFF_NO_PI;
     strncpy(ifr.ifr_name, name, IFNAMSIZ);
     if (ioctl(fd, TUNSETIFF, &ifr) < 0)
         return errno;
 
-    if (ioctl(fd, TUNSETPERSIST, 1) < 0)
-        return errno;
+    if (fd_out) {
+        *fd_out = fd;
+    } else {
+        if (ioctl(fd, TUNSETPERSIST, 1) < 0)
+            return errno;
 
-    close(fd);
+        close(fd);
+    }
 
     return 0;
 }
@@ -344,7 +350,12 @@ int main(int argc, char *argv[])
                 nl_geterror(err));
         return 1;
     }
-    err = create_tap_link(TAP_LINK_NAME);
+    int tap_fd;
+
+    if (hypervisor == UKVM)
+        err = create_tap_link(TAP_LINK_NAME, &tap_fd);
+    else
+        err = create_tap_link(TAP_LINK_NAME, NULL);
     if (err != 0) {
         warnx("create_tap_link(%s) failed: %s", TAP_LINK_NAME, strerror(err));
         return 1;
@@ -514,7 +525,7 @@ int main(int argc, char *argv[])
      */
     else if (hypervisor == UKVM) {
         pvadd(uargpv, "/unikernel/ukvm");
-        err = asprintf(&uarg_buf, "--net=%s", TAP_LINK_NAME);
+        err = asprintf(&uarg_buf, "--net=@%d", tap_fd);
         assert(err != -1);
         pvadd(uargpv, uarg_buf);
         pvadd(uargpv, "--");
