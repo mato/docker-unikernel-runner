@@ -51,7 +51,7 @@ do_build()
     esac
     shift
 
-    BIN=mir-$(mirage describe | awk -- '/^Name/{print $2}')${SUFFIX}
+    BIN=$(mirage describe | awk -- '/^Name/{print $2}')${SUFFIX}
     if [ ! -f ${BIN} ]; then
         echo error: Unikernel binary \"./${BIN}\" not found. 1>&2
         exit 1
